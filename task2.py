@@ -61,8 +61,7 @@ def runCrack(val, msgBinList, cipher):
         keyList = [int(x) for x in parIncValBin]
         cracked = bits2bytes(dw.des_encrypt(key, msgBinList))
         if cracked == cipher:
-            print "Cracked:", cracked
-            print "Time to crack:", time() - t0
+            print("Cracked: {0}".format(cracked))
             return cracked
 
 def Range(start, stop):
@@ -73,7 +72,8 @@ def Range(start, stop):
 
 def main(argv):
     if argv[0] == 'enum_key':
-        print (enum_key(argv[1]))
+        pass
+        print(enum_key(argv[1]))
     elif argv[0] == 'crack':
         message = open('plaintext', 'r').read()
         cipher = open('ciphertext', 'r').read()
@@ -83,11 +83,12 @@ def main(argv):
         noParMaxValStr = str(removeParity(maxValBin))        
         noParMinValDec = long(noParMinValStr,2)
         noParMaxValDec = long(noParMaxValStr,2)
-        
+
+        print("Beginning to crack..")
         t0 = time()
         for val in Range(noParMinValDec, noParMaxValDec):
             pool.apply_async(runCrack, (val, messageBinList, cipher))
-        print "Time to crack:", time() - t0
+        print("Time to crack: {0}".format(time() - t0))
         pool.close()
         pool.join()
         
