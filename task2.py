@@ -2,7 +2,10 @@
 
 import sys
 import binascii
+from time import time
+from multiprocessing.pool import ThreadPool
 # import des_wrapper as dw
+pool = ThreadPool(50)
 
 b = 8
 minValHex = "808080BA80808080"
@@ -40,6 +43,27 @@ def enum_key(current):
     parIncValHex = hex(int(parIncValBin, 2))
     return str(parIncValHex[2:len(parIncValHex)-1])
 
+def runCrack(val, msgBinList, cipher):
+        incValDec = val + 1
+        paddedIncValBin = "0" * (7*b-len(bin(incValDec)[2:])%(7*b)) + bin(incValDec)[2:]
+        paddedIncBlocksBin = [paddedIncValBin[i:(b-1+i)] for i in range(0, len(paddedIncValBin), b-1)]
+        for i, block in enumerate(paddedIncBlocksBin):
+            nOnes = 0
+            for char in block:
+                if char == "1":
+                    nOnes += 1
+            if nOnes % 2:
+                paddedIncBlocksBin[i] = "0" + paddedIncBlocksBin[i]
+            else:
+                paddedIncBlocksBin[i] = "1" + paddedIncBlocksBin[i]
+        parIncValBin = "".join(str(block) for block in paddedIncBlocksBin)
+        keyList = [int(x) for x in parIncValBin]
+        cracked = bits2bytes(dw.des_encrypt(key, msgBinList))
+        if cracked == cipher:
+            print "Cracked:", cracked
+            print "Time to crack:", time() - t0
+            return cracked
+        
 def main(argv):
     if argv[0] == 'enum_key':
         print (enum_key(argv[1]))
@@ -52,8 +76,13 @@ def main(argv):
         noParMaxValStr = str(removeParity(maxValBin))        
         noParMinValDec = int(noParMinValStr,2)
         noParMaxValDec = int(noParMaxValStr,2)
-
-        for i in xrange(noParMinValDec, noParMaxValDec):
+        
+        t0 = time()
+        for val in range(noParMinValDec, noParMaxValDec):
+            pool.apply_async(runCrack, (val, messageBinList, cipher))
+        print "Time to crack:", time() - t0
+        pool.close()
+        pool.join()
         
     else:
         raise Exception("Wrong mode!")
