@@ -85,12 +85,18 @@ def main(argv):
         noParMaxValDec = long(noParMaxValStr,2)
 
         print("Beginning to crack..")
+        numChecked = 0
         t0 = time()
-        for val in Range(noParMinValDec, noParMaxValDec):
-            pool.apply_async(runCrack, (val, messageBinList, cipher))
-        print("Time to crack: {0}".format(time() - t0))
-        pool.close()
-        pool.join()
+        try:
+            for val in Range(noParMinValDec, noParMaxValDec):
+                pool.apply_async(runCrack, (val, messageBinList, cipher))
+                numChecked += 1
+            print("Time to crack: {0}".format(time() - t0))
+            pool.close()
+            pool.join()
+        except:
+            print("Number of attempts: {0}".format(numChecked))
+            print("Time to crack: {0}".format(time() - t0))
         
     else:
         raise Exception("Wrong mode!")
