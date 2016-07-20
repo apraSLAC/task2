@@ -4,6 +4,7 @@ import sys
 import binascii
 from time import time
 from multiprocessing.pool import ThreadPool
+import itertools
 # import des_wrapper as dw
 pool = ThreadPool(50)
 
@@ -63,7 +64,13 @@ def runCrack(val, msgBinList, cipher):
             print "Cracked:", cracked
             print "Time to crack:", time() - t0
             return cracked
-        
+
+def Range(start, stop):
+   i = start
+   while i < stop:
+       yield i
+       i += 1
+
 def main(argv):
     if argv[0] == 'enum_key':
         print (enum_key(argv[1]))
@@ -74,11 +81,11 @@ def main(argv):
         messageBinList = [int(x) for x in messageBin]
         noParMinValStr = str(removeParity(minValBin))
         noParMaxValStr = str(removeParity(maxValBin))        
-        noParMinValDec = int(noParMinValStr,2)
-        noParMaxValDec = int(noParMaxValStr,2)
+        noParMinValDec = long(noParMinValStr,2)
+        noParMaxValDec = long(noParMaxValStr,2)
         
         t0 = time()
-        for val in range(noParMinValDec, noParMaxValDec):
+        for val in Range(noParMinValDec, noParMaxValDec):
             pool.apply_async(runCrack, (val, messageBinList, cipher))
         print "Time to crack:", time() - t0
         pool.close()
